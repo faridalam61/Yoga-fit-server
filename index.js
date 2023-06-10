@@ -3,7 +3,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(cors());
 app.use(express.json())
@@ -34,8 +34,6 @@ async function run() {
           const newClass = req.body;
           const result = await classCollection.insertOne(newClass)
           res.send(result)
-          console.log(newClass)
-          console.log(result)
       })
 
     //   Get All classes
@@ -43,6 +41,21 @@ async function run() {
           const result = await classCollection.find().toArray();
         res.send(result)
       })
+
+    // Update Class Status
+    app.patch('/classes/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const newStatus = req.body.status;
+      const updateDoc = {
+      $set: {
+        status: newStatus
+      },
+    };
+      const result = await classCollection.updateOne(query, updateDoc);
+      res.send(result)
+  
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
