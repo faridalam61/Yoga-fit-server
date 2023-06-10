@@ -28,6 +28,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
       await client.connect();
       const classCollection = client.db("summer-camp-school").collection("classes")
+      const userCollection = client.db("summer-camp-school").collection("users")
       
     //   Add Classes
       app.post('/classes', async (req, res) => {
@@ -56,6 +57,37 @@ async function run() {
       res.send(result)
   
     })
+
+    // Save new user to mogodb
+     app.post('/users', async (req, res) => {
+          const newUser = req.body;
+          const result = await userCollection.insertOne(newUser)
+          res.send(result)
+     })
+    
+    // Get All users
+     app.get('/users', async (req, res) => {
+          const result = await userCollection.find().toArray();
+        res.send(result)
+      })
+    
+    // update use role
+
+    app.patch('/users/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const newRole = req.body.role;
+      const updateRole = {
+      $set: {
+        role: newRole
+      },
+    };
+      const result = await userCollection.updateOne(query, updateRole);
+      res.send(result)
+  
+    })
+
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
