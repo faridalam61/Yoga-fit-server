@@ -29,6 +29,7 @@ async function run() {
       await client.connect();
       const classCollection = client.db("summer-camp-school").collection("classes")
       const userCollection = client.db("summer-camp-school").collection("users")
+      const selectedCollection = client.db("summer-camp-school").collection("selected")
       
     //   Add Classes
       app.post('/classes', async (req, res) => {
@@ -42,6 +43,17 @@ async function run() {
           const result = await classCollection.find().toArray();
         res.send(result)
       })
+// Get all classes by user email
+  app.get('/class',async (req,res)=>{
+  const email = req.query.email;
+  if(!email){
+    res.send([])
+  } 
+
+  const query = {instructorEmail : email}
+  const result = await classCollection.find(query).toArray()
+  res.send(result)
+})
 
     // Update Class Status
     app.patch('/classes/:id', async (req, res) => {
@@ -87,6 +99,23 @@ async function run() {
   
     })
 
+    // Add class to selection list
+      app.post('/selected', async (req,res)=>{
+      const query = req.body;
+      const result = await selectedCollection.insertOne(query)
+      res.send(result)
+    }) 
+// Get selected items
+  app.get('/selected',async (req,res)=>{
+  const email = req.query.email;
+  if(!email){
+    res.send([])
+  } 
+
+  const query = {email : email}
+  const result = await selectedCollection.find(query).toArray()
+  res.send(result)
+})
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
