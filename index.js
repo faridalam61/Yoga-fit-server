@@ -27,6 +27,7 @@ async function run() {
       const classCollection = client.db("summer-camp-school").collection("classes")
       const userCollection = client.db("summer-camp-school").collection("users")
       const selectedCollection = client.db("summer-camp-school").collection("selected")
+      const enrolledCollection = client.db("summer-camp-school").collection("enrolled")
       
     //   Add Classes
       app.post('/classes', async (req, res) => {
@@ -40,6 +41,42 @@ async function run() {
           const result = await classCollection.find().toArray();
         res.send(result)
       })
+
+
+      // Get class by id
+      app.get('/classes/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id:new ObjectId(id)}
+
+        const result = await classCollection.findOne(query)
+      res.send(result)
+    })
+
+
+
+    app.patch('/classes/edit/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const newName = req.body.name;
+      const newPrice = req.body.price;
+      const newImage = req.body.image;
+      const newSeats = req.body.availableSeats;
+      const updateDoc = {
+      $set: {
+        name: newName,
+        price: newPrice,
+        image: newImage,
+        availableSeats: newSeats
+      },
+    };
+      const result = await classCollection.updateOne(query, updateDoc);
+      res.send(result)
+  console.log(result)
+    })
+
+
+
+
 // Get all classes by user email
   app.get('/class',async (req,res)=>{
   const email = req.query.email;
@@ -106,12 +143,14 @@ async function run() {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
       const newEnrole = req.body.newEnrolled;
+      const previousEnrolled = await classCollection.findOne(query)
+      const totalEnrolled = previousEnrolled.enrolled+newEnrole;
       const updateEnrole = {
       $set: {
-        enrolled: newEnrole
+        enrolled: totalEnrolled
       },
     };
-      const result = await selectedCollection.updateOne(query, updateEnrole);
+      const result = await classCollection.updateOne(query, updateEnrole);
       res.send(result)
        console.log(req.body)
        console.log(result)
@@ -123,7 +162,36 @@ async function run() {
       const result = await selectedCollection.insertOne(query)
       res.send(result)
     }) 
-// Get selected items
+  // update selected classes payment status
+    app.patch('/selected/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const newStatus = req.body.paymentStatus;
+  
+      const updateEnrole = {
+      $set: {
+        paymentStatus: newStatus
+      },
+    };
+      const result = await selectedCollection.updateOne(query, updateEnrole);
+      res.send(result)
+    
+    })
+    // Delete from selected class
+    app.delete('/selected/:id',async (req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await selectedCollection.deleteOne(query)
+      res.send(result)
+    })
+    // Add class to enrolled list
+    app.post('/enrolled', async (req,res)=>{
+      const query = req.body;
+      const result = await enrolledCollection.insertOne(query)
+      res.send(result)
+    }) 
+
+    // Get selected items
   app.get('/selected',async (req,res)=>{
   const email = req.query.email;
   if(!email){
@@ -134,6 +202,18 @@ async function run() {
   const result = await selectedCollection.find(query).toArray()
   res.send(result)
 })
+
+   // Get enrolled items
+   app.get('/enrolled',async (req,res)=>{
+    const email = req.query.email;
+    if(!email){
+      res.send([])
+    } 
+  
+    const query = {email : email}
+    const result = await enrolledCollection.find(query).toArray()
+    res.send(result)
+  })
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
