@@ -103,6 +103,12 @@ async function run() {
       res.send(result)
   
     })
+// Popular classes
+app.get('/popular', async(req,res)=>{
+const result = await classCollection.find().sort({ enrolled: -1 }).limit(6).toArray()
+res.send(result)
+})
+
 
     // Save new user to mogodb
      app.post('/users', async (req, res) => {
