@@ -71,7 +71,7 @@ async function run() {
     };
       const result = await classCollection.updateOne(query, updateDoc);
       res.send(result)
-  console.log(result)
+  
     })
 
 
@@ -163,8 +163,7 @@ res.send(result)
     };
       const result = await classCollection.updateOne(query, updateEnrole);
       res.send(result)
-       console.log(req.body)
-       console.log(result)
+  
     })
 
     // Add class to selection list
